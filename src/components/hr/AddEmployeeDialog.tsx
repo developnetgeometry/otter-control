@@ -38,7 +38,6 @@ const formSchema = z.object({
   position: z.string().optional(),
   employment_type: z.string().min(1, 'Employment type is required'),
   basic_salary: z.coerce.number().min(0).optional(),
-  supervisor_id: z.string().uuid().optional(),
   joining_date: z.string().optional(),
 });
 
@@ -50,7 +49,6 @@ interface AddEmployeeDialogProps {
 export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps) => {
   const createEmployee = useCreateEmployee();
   const { data: departments } = useDepartments();
-  const { data: employees } = useEmployees();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,7 +68,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
       department_id: values.department_id,
       position: values.position,
       basic_salary: values.basic_salary,
-      supervisor_id: values.supervisor_id,
       joining_date: values.joining_date,
     };
     createEmployee.mutate(employeeData, {
@@ -96,19 +93,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="full_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="employee_id"
                   render={({ field }) => (
                     <FormItem>
@@ -122,9 +106,22 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
                 />
                 <FormField
                   control={form.control}
+                  name="full_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="email"
                   render={({ field }) => (
-                    <FormItem className="col-span-2">
+                    <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input type="email" {...field} />
@@ -159,32 +156,10 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
                 />
                 <FormField
                   control={form.control}
-                  name="employment_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Employment Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="permanent">Permanent</SelectItem>
-                          <SelectItem value="contract">Contract</SelectItem>
-                          <SelectItem value="temporary">Temporary</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="position"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Position</FormLabel>
+                      <FormLabel>Role</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -207,6 +182,28 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
                 />
                 <FormField
                   control={form.control}
+                  name="employment_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Employment Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="permanent">Permanent</SelectItem>
+                          <SelectItem value="contract">Contract</SelectItem>
+                          <SelectItem value="temporary">Temporary</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="joining_date"
                   render={({ field }) => (
                     <FormItem>
@@ -214,30 +211,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="supervisor_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Supervisor</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select supervisor" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {employees?.map((emp) => (
-                            <SelectItem key={emp.id} value={emp.id}>
-                              {emp.full_name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -259,5 +232,3 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
   );
 };
 
-// Import useEmployees for supervisor selection
-import { useEmployees } from '@/hooks/useEmployees';
