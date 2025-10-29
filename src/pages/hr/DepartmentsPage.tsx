@@ -7,6 +7,7 @@ import { useDepartments, useDeleteDepartment } from '@/hooks/useDepartments';
 import { AddDepartmentDialog } from '@/components/hr/AddDepartmentDialog';
 import { EditDepartmentDialog } from '@/components/hr/EditDepartmentDialog';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { AppLayout } from '@/components/layout/AppLayout';
 import type { Department } from '@/lib/api/departments';
 
 export default function DepartmentsPage() {
@@ -63,54 +64,56 @@ export default function DepartmentsPage() {
   ];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Departments</h1>
-          <p className="text-muted-foreground mt-1">Manage company departments</p>
+    <AppLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Departments</h1>
+            <p className="text-muted-foreground mt-1">Manage company departments</p>
+          </div>
+          <Button onClick={() => setAddDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Department
+          </Button>
         </div>
-        <Button onClick={() => setAddDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Department
-        </Button>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>All Departments</CardTitle>
+            <CardDescription>View and manage department information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              data={departments || []}
+              columns={columns}
+              isLoading={isLoading}
+              searchable
+              emptyMessage="No departments found"
+            />
+          </CardContent>
+        </Card>
+
+        <AddDepartmentDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
+        
+        {selectedDepartment && (
+          <>
+            <EditDepartmentDialog
+              open={editDialogOpen}
+              onOpenChange={setEditDialogOpen}
+              department={selectedDepartment}
+            />
+            <ConfirmDialog
+              open={deleteDialogOpen}
+              onOpenChange={setDeleteDialogOpen}
+              title="Delete Department"
+              description={`Are you sure you want to delete "${selectedDepartment.name}"? This action cannot be undone.`}
+              onConfirm={confirmDelete}
+              confirmText="Delete"
+              variant="destructive"
+            />
+          </>
+        )}
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>All Departments</CardTitle>
-          <CardDescription>View and manage department information</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            data={departments || []}
-            columns={columns}
-            isLoading={isLoading}
-            searchable
-            emptyMessage="No departments found"
-          />
-        </CardContent>
-      </Card>
-
-      <AddDepartmentDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
-      
-      {selectedDepartment && (
-        <>
-          <EditDepartmentDialog
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
-            department={selectedDepartment}
-          />
-          <ConfirmDialog
-            open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-            title="Delete Department"
-            description={`Are you sure you want to delete "${selectedDepartment.name}"? This action cannot be undone.`}
-            onConfirm={confirmDelete}
-            confirmText="Delete"
-            variant="destructive"
-          />
-        </>
-      )}
-    </div>
+    </AppLayout>
   );
 }

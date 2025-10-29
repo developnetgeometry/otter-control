@@ -8,6 +8,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { AddEmployeeDialog } from '@/components/hr/AddEmployeeDialog';
 import { EditEmployeeDialog } from '@/components/hr/EditEmployeeDialog';
 import { ViewEmployeeDialog } from '@/components/hr/ViewEmployeeDialog';
+import { AppLayout } from '@/components/layout/AppLayout';
 import type { EmployeeProfile } from '@/types/otms';
 
 export default function EmployeesPage() {
@@ -81,50 +82,52 @@ export default function EmployeesPage() {
   ];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Employees</h1>
-          <p className="text-muted-foreground mt-1">Manage employee profiles and information</p>
+    <AppLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Employees</h1>
+            <p className="text-muted-foreground mt-1">Manage employee profiles and information</p>
+          </div>
+          <Button onClick={() => setAddDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Employee
+          </Button>
         </div>
-        <Button onClick={() => setAddDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Employee
-        </Button>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>All Employees</CardTitle>
+            <CardDescription>View and manage employee information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              data={employees || []}
+              columns={columns}
+              isLoading={isLoading}
+              searchable
+              emptyMessage="No employees found"
+            />
+          </CardContent>
+        </Card>
+
+        <AddEmployeeDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
+        
+        {selectedEmployee && (
+          <>
+            <EditEmployeeDialog
+              open={editDialogOpen}
+              onOpenChange={setEditDialogOpen}
+              employee={selectedEmployee}
+            />
+            <ViewEmployeeDialog
+              open={viewDialogOpen}
+              onOpenChange={setViewDialogOpen}
+              employee={selectedEmployee}
+            />
+          </>
+        )}
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>All Employees</CardTitle>
-          <CardDescription>View and manage employee information</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            data={employees || []}
-            columns={columns}
-            isLoading={isLoading}
-            searchable
-            emptyMessage="No employees found"
-          />
-        </CardContent>
-      </Card>
-
-      <AddEmployeeDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
-      
-      {selectedEmployee && (
-        <>
-          <EditEmployeeDialog
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
-            employee={selectedEmployee}
-          />
-          <ViewEmployeeDialog
-            open={viewDialogOpen}
-            onOpenChange={setViewDialogOpen}
-            employee={selectedEmployee}
-          />
-        </>
-      )}
-    </div>
+    </AppLayout>
   );
 }
