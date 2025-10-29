@@ -37,11 +37,8 @@ const formSchema = z.object({
   email: z.string().email(),
   department_id: z.string().optional(),
   position: z.string().optional(),
-  designation: z.string().optional(),
   employment_type: z.string().min(1),
   basic_salary: z.coerce.number().min(0).optional(),
-  work_location: z.string().optional(),
-  state: z.string().optional(),
   status: z.string(),
 });
 
@@ -66,11 +63,8 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee }: EditEmploye
       email: employee.email,
       department_id: employee.department_id || undefined,
       position: employee.position || undefined,
-      designation: employee.designation || undefined,
       employment_type: employee.employment_type,
       basic_salary: employee.basic_salary ? Number(employee.basic_salary) : undefined,
-      work_location: employee.work_location || undefined,
-      state: employee.state || undefined,
       status: employee.status || 'pending_activation',
     });
   }, [employee, form]);
@@ -196,19 +190,6 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee }: EditEmploye
                 />
                 <FormField
                   control={form.control}
-                  name="designation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Designation</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="basic_salary"
                   render={({ field }) => (
                     <FormItem>
@@ -238,32 +219,6 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee }: EditEmploye
                           <SelectItem value="inactive">Inactive</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="work_location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Work Location</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="state"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>State</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

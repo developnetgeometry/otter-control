@@ -36,11 +36,8 @@ const formSchema = z.object({
   email: z.string().email('Invalid email address'),
   department_id: z.string().optional(),
   position: z.string().optional(),
-  designation: z.string().optional(),
   employment_type: z.string().min(1, 'Employment type is required'),
   basic_salary: z.coerce.number().min(0).optional(),
-  work_location: z.string().optional(),
-  state: z.string().optional(),
   supervisor_id: z.string().uuid().optional(),
   joining_date: z.string().optional(),
 });
@@ -72,10 +69,7 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
       employment_type: values.employment_type,
       department_id: values.department_id,
       position: values.position,
-      designation: values.designation,
       basic_salary: values.basic_salary,
-      work_location: values.work_location,
-      state: values.state,
       supervisor_id: values.supervisor_id,
       joining_date: values.joining_date,
     };
@@ -200,19 +194,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
                 />
                 <FormField
                   control={form.control}
-                  name="designation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Designation</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="basic_salary"
                   render={({ field }) => (
                     <FormItem>
@@ -232,32 +213,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
                       <FormLabel>Joining Date</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="work_location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Work Location</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="state"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>State</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

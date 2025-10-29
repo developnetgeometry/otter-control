@@ -79,10 +79,6 @@ export const ViewEmployeeDialog = ({ open, onOpenChange, employee }: ViewEmploye
                 <p className="font-medium">{employee.position || 'N/A'}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Designation</p>
-                <p className="font-medium">{employee.designation || 'N/A'}</p>
-              </div>
-              <div>
                 <p className="text-sm text-muted-foreground">Employment Type</p>
                 <p className="font-medium capitalize">{employee.employment_type}</p>
               </div>
@@ -93,22 +89,6 @@ export const ViewEmployeeDialog = ({ open, onOpenChange, employee }: ViewEmploye
               <div>
                 <p className="text-sm text-muted-foreground">Joining Date</p>
                 <p className="font-medium">{employee.joining_date ? formatDate(employee.joining_date) : 'N/A'}</p>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">Work Location</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Location</p>
-                <p className="font-medium">{employee.work_location || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">State</p>
-                <p className="font-medium">{employee.state || 'N/A'}</p>
               </div>
             </div>
           </div>
