@@ -30,7 +30,7 @@ export const updatePassword = async (password: string) => {
 };
 
 export const getDefaultRouteForRole = (roles: AppRole[]): string => {
-  if (roles.includes('admin') || roles.includes('hr')) return '/hr/dashboard';
+  if (roles.includes('admin') || roles.includes('hr')) return '/dashboard';
   if (roles.includes('bod')) return '/bod/review';
   if (roles.includes('supervisor')) return '/supervisor/verify';
   if (roles.includes('employee')) return '/dashboard';
