@@ -10,6 +10,8 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import EmployeesPage from "./pages/hr/EmployeesPage";
 import DepartmentsPage from "./pages/hr/DepartmentsPage";
+import SubmitOTPage from "./pages/employee/SubmitOTPage";
+import OTHistoryPage from "./pages/employee/OTHistoryPage";
 
 const queryClient = new QueryClient();
 
@@ -39,7 +41,7 @@ const App = () => (
               path="/ot/submit" 
               element={
                 <ProtectedRoute allowedRoles={['employee']}>
-                  <div>Submit OT Page (Coming Soon)</div>
+                  <SubmitOTPage />
                 </ProtectedRoute>
               } 
             />
@@ -47,7 +49,7 @@ const App = () => (
               path="/ot/history" 
               element={
                 <ProtectedRoute allowedRoles={['employee']}>
-                  <div>OT History Page (Coming Soon)</div>
+                  <OTHistoryPage />
                 </ProtectedRoute>
               } 
             />
