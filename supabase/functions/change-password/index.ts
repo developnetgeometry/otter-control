@@ -75,8 +75,26 @@ serve(async (req) => {
       _password: current_password
     });
 
-    if (verifyError || !verifyData || verifyData.length === 0 || !verifyData[0].success) {
-      console.log('Current password verification failed');
+    console.log('Verify RPC result:', { verifyError, verifyData });
+
+    if (verifyError) {
+      console.error('RPC error:', verifyError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify password' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!verifyData || verifyData.length === 0) {
+      console.log('No verification data returned');
+      return new Response(
+        JSON.stringify({ error: 'Current password is incorrect' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!verifyData[0].success) {
+      console.log('Password verification returned success=false');
       return new Response(
         JSON.stringify({ error: 'Current password is incorrect' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
