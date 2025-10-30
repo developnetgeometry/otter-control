@@ -4,12 +4,17 @@ import type { DayType } from '@/types/otms';
 
 export const calculateHours = (startTime: string, endTime: string): number => {
   const start = parse(startTime, 'HH:mm', new Date());
-  const end = parse(endTime, 'HH:mm', new Date());
+  let end = parse(endTime, 'HH:mm', new Date());
   
-  const hours = differenceInHours(end, start, { roundingMethod: 'floor' });
-  const minutes = (end.getTime() - start.getTime()) % (1000 * 60 * 60);
+  // Handle overnight shifts (cross-midnight)
+  if (end <= start) {
+    end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
+  }
   
-  return hours + minutes / (1000 * 60 * 60);
+  const totalMilliseconds = end.getTime() - start.getTime();
+  const totalHours = totalMilliseconds / (1000 * 60 * 60);
+  
+  return Math.round(totalHours * 100) / 100; // Round to 2 decimals
 };
 
 export const determineDayType = async (date: string): Promise<DayType> => {

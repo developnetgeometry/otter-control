@@ -19,6 +19,7 @@ import { ThresholdWarning } from './ThresholdWarning';
 import { FileUpload } from '@/components/shared/FileUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
 import type { DayType } from '@/types/otms';
 
 const formSchema = z.object({
@@ -114,6 +115,12 @@ export const OTSubmissionForm = () => {
       } catch (error) {
         console.error('Calculation error:', error);
         setCalculations(null);
+        setEligibility(null);
+        toast({
+          title: "Calculation Error",
+          description: "We couldn't compute your OT right now. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setIsCalculating(false);
       }
@@ -295,20 +302,35 @@ export const OTSubmissionForm = () => {
           )}
         />
 
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={!calculations || !eligibility?.isEligible || createMutation.isPending}
-        >
-          {createMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Submitting...
-            </>
-          ) : (
-            'Submit OT Request'
+        <div className="space-y-2">
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={isCalculating || !calculations || !eligibility?.isEligible || createMutation.isPending}
+          >
+            {createMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Submit OT Request'
+            )}
+          </Button>
+          {(isCalculating || !calculations || !eligibility?.isEligible) && (
+            <p className="text-sm text-muted-foreground text-center">
+              {isCalculating 
+                ? 'Still calculating...' 
+                : !watchedDate || !watchedStartTime || !watchedEndTime
+                ? 'Select OT date, start and end time'
+                : calculations && calculations.totalHours <= 0
+                ? 'Calculated hours must be greater than 0'
+                : eligibility && !eligibility.isEligible
+                ? `You are not eligible to submit OT: ${eligibility.reason}`
+                : 'Please complete all required fields'}
+            </p>
           )}
-        </Button>
+        </div>
       </form>
     </Form>
   );
