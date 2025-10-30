@@ -54,24 +54,24 @@ serve(async (req) => {
 
     console.log(`Password change request for user: ${user.id}`);
 
-    // Get employee_id from profile
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('employee_id')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !profile) {
-      console.error('Profile not found:', profileError);
+    // Extract employee ID from email (format: EMPxxx@otms.internal)
+    const email = user.email || '';
+    const [empPart, domain] = email.toLowerCase().split('@');
+    
+    if (domain !== 'otms.internal') {
+      console.error('Invalid email domain:', domain);
       return new Response(
-        JSON.stringify({ error: 'Profile not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Invalid account email format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const employeeId = empPart.toUpperCase();
+    console.log(`Extracted employee ID: ${employeeId}`);
+
     // Verify current password
     const { data: verifyData, error: verifyError } = await supabaseAdmin.rpc('verify_employee_credentials', {
-      _employee_id: profile.employee_id,
+      _employee_id: employeeId,
       _password: current_password
     });
 
@@ -105,7 +105,7 @@ serve(async (req) => {
         must_change_password: false,
         last_password_change: new Date().toISOString()
       })
-      .eq('employee_id', profile.employee_id);
+      .eq('employee_id', employeeId);
 
     if (updateError) {
       console.error('Password update error:', updateError);
@@ -119,14 +119,14 @@ serve(async (req) => {
     const { error: profileActivationError } = await supabaseAdmin
       .from('profiles')
       .update({ status: 'active' })
-      .eq('id', user.id);
+      .eq('employee_id', employeeId);
 
     if (profileActivationError) {
       console.error('Error activating profile:', profileActivationError);
       // Don't fail the request, just log the error
     }
 
-    console.log('Password changed successfully for:', profile.employee_id);
+    console.log('Password changed successfully for:', employeeId);
 
     return new Response(
       JSON.stringify({ 
