@@ -43,6 +43,7 @@ const formSchema = z.object({
   }),
   basic_salary: z.coerce.number().min(0).optional(),
   joining_date: z.string().optional(),
+  default_password: z.string().min(8, 'Password must be at least 8 characters').default('Temp@1234'),
 });
 
 interface AddEmployeeDialogProps {
@@ -59,6 +60,7 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
     resolver: zodResolver(formSchema),
     defaultValues: {
       employment_type: 'Permanent',
+      default_password: 'Temp@1234',
     },
   });
 
@@ -78,11 +80,19 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
       position: values.position,
       basic_salary: values.basic_salary,
       joining_date: values.joining_date,
+      default_password: values.default_password,
     };
     createEmployee.mutate(employeeData, {
-      onSuccess: () => {
+      onSuccess: (data) => {
         form.reset();
         onOpenChange(false);
+        
+        // Show credentials in success message
+        if (data?.credentials) {
+          const message = `Employee ${values.full_name} has been successfully registered.\n\nEmployee ID: ${data.credentials.employee_id}\nDefault Password: ${data.credentials.default_password}\n\nPlease share these credentials with the employee securely.`;
+          // Toast will be shown by the mutation hook, but we could add additional UI here
+          console.log(message);
+        }
       },
     });
   };
@@ -222,6 +232,26 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="default_password"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel>Default Password</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="text" 
+                          placeholder="e.g., Temp@1234" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Employee will be required to change this password on first login
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}

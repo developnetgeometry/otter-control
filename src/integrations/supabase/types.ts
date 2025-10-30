@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      auth_user_credentials: {
+        Row: {
+          created_at: string | null
+          employee_id: string
+          id: string
+          is_active: boolean | null
+          last_password_change: string | null
+          must_change_password: boolean | null
+          password_hash: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          is_active?: boolean | null
+          last_password_change?: string | null
+          must_change_password?: boolean | null
+          password_hash: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          is_active?: boolean | null
+          last_password_change?: string | null
+          must_change_password?: boolean | null
+          password_hash?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auth_user_credentials_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           code: string
@@ -499,6 +540,17 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      verify_employee_credentials: {
+        Args: { _employee_id: string; _password: string }
+        Returns: {
+          employee_id: string
+          full_name: string
+          must_change_password: boolean
+          roles: Database["public"]["Enums"]["app_role"][]
+          success: boolean
+          user_id: string
+        }[]
       }
     }
     Enums: {

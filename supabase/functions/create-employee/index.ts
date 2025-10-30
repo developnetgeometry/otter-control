@@ -26,6 +26,7 @@ serve(async (req) => {
     );
 
     const employeeData = await req.json();
+    const defaultPassword = employeeData.default_password || 'Temp@1234';
     console.log('Creating employee with data:', { email: employeeData.email, employee_id: employeeData.employee_id });
 
     // Step 1: Create auth user
@@ -78,22 +79,58 @@ serve(async (req) => {
 
     console.log('Profile created successfully:', profile.id);
 
-    // Step 3: Send password setup email
-    const { error: resetError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'recovery',
-      email: employeeData.email,
-    });
+    // Step 3: Hash the default password using pgcrypto
+    const { data: saltData, error: saltError } = await supabaseAdmin
+      .rpc('gen_salt', { type: 'bf' });
 
-    if (resetError) {
-      console.warn('Password reset email error:', resetError);
-      // Don't throw here - employee is created, email is optional
+    if (saltError) {
+      console.error('Error generating salt:', saltError);
+      // Cleanup
+      await supabaseAdmin.from('profiles').delete().eq('id', authUser.user.id);
+      await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+      throw new Error('Failed to generate password salt');
     }
+
+    const { data: hashedPassword, error: hashError } = await supabaseAdmin
+      .rpc('crypt', { password: defaultPassword, salt: saltData });
+
+    if (hashError) {
+      console.error('Error hashing password:', hashError);
+      // Cleanup
+      await supabaseAdmin.from('profiles').delete().eq('id', authUser.user.id);
+      await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+      throw new Error('Failed to hash password');
+    }
+
+    // Step 4: Create entry in auth_user_credentials
+    const { error: credError } = await supabaseAdmin
+      .from('auth_user_credentials')
+      .insert({
+        employee_id: employeeData.employee_id,
+        password_hash: hashedPassword,
+        must_change_password: true,
+        is_active: true
+      });
+
+    if (credError) {
+      console.error('Error creating credentials:', credError);
+      // Cleanup
+      await supabaseAdmin.from('profiles').delete().eq('id', authUser.user.id);
+      await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+      throw new Error('Failed to create employee credentials');
+    }
+
+    console.log('Employee credentials created successfully');
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         employee: profile,
-        message: 'Employee created successfully. Password setup email sent.'
+        credentials: {
+          employee_id: employeeData.employee_id,
+          default_password: defaultPassword
+        },
+        message: 'Employee created successfully with login credentials.'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

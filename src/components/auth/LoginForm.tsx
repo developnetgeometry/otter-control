@@ -12,12 +12,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { signInWithEmail } from '@/lib/auth';
+import { signInWithEmployeeId } from '@/lib/auth';
 import { toast } from 'sonner';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  employee_id: z.string().min(1, 'Employee ID is required'),
+  password: z.string().min(1, 'Password is required'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -28,7 +28,7 @@ export const LoginForm = () => {
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      employee_id: '',
       password: '',
     },
   });
@@ -36,14 +36,10 @@ export const LoginForm = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setLoading(true);
-      const { error } = await signInWithEmail(data.email, data.password);
+      const { error } = await signInWithEmployeeId(data.employee_id, data.password);
 
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast.error('Invalid email or password');
-        } else {
-          toast.error(error.message);
-        }
+        toast.error(error.message || 'Invalid Employee ID or Password');
         return;
       }
 
@@ -60,14 +56,14 @@ export const LoginForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="email"
+          name="employee_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Employee ID</FormLabel>
               <FormControl>
                 <Input 
-                  type="email" 
-                  placeholder="your.email@company.com" 
+                  type="text" 
+                  placeholder="Enter your Employee ID (e.g., EMP001)" 
                   {...field} 
                 />
               </FormControl>

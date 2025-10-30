@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 import EmployeesPage from "./pages/hr/EmployeesPage";
 import DepartmentsPage from "./pages/hr/DepartmentsPage";
 import ApproveOTPage from "./pages/hr/ApproveOTPage";
@@ -28,6 +29,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/change-password" element={<ChangePasswordPage />} />
             
             {/* Dashboard - All authenticated users */}
             <Route 

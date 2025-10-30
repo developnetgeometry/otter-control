@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.create-employee]
 verify_jwt = true
+
+[functions.authenticate-employee]
+verify_jwt = false
+
+[functions.change-password]
+verify_jwt = true

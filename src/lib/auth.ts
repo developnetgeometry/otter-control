@@ -9,6 +9,48 @@ export const signInWithEmail = async (email: string, password: string) => {
   return { data, error };
 };
 
+export const signInWithEmployeeId = async (employeeId: string, password: string) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('authenticate-employee', {
+      body: { employee_id: employeeId, password }
+    });
+
+    if (error) {
+      return { data: null, error: { message: 'Authentication failed' } };
+    }
+
+    if (!data.success) {
+      return { data: null, error: { message: data.error || 'Invalid Employee ID or Password' } };
+    }
+
+    // If session tokens are returned, set the session
+    if (data.session) {
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token
+      });
+
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+      }
+    }
+
+    // Store user info in localStorage for auth context
+    localStorage.setItem('employee_auth', JSON.stringify({
+      user_id: data.user.id,
+      employee_id: data.user.employee_id,
+      full_name: data.user.full_name,
+      roles: data.user.roles,
+      must_change_password: data.user.must_change_password
+    }));
+
+    return { data: data.user, error: null };
+  } catch (error) {
+    console.error('Sign in error:', error);
+    return { data: null, error: { message: 'An unexpected error occurred' } };
+  }
+};
+
 export const signUpWithEmail = async (email: string, password: string) => {
   const redirectUrl = `${window.location.origin}/`;
   
