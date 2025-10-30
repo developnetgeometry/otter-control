@@ -33,7 +33,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
-  id: z.string().uuid(),
   full_name: z.string().min(1, 'Full name is required'),
   employee_id: z.string().optional(),
   email: z.string().email('Invalid email address'),
@@ -59,7 +58,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      id: crypto.randomUUID(),
       employment_type: 'Permanent',
     },
   });
@@ -72,7 +70,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const employeeData = {
-      id: values.id,
       full_name: values.full_name,
       employee_id: values.employee_id || nextEmployeeId || 'EMP001',
       email: values.email,
@@ -84,7 +81,7 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
     };
     createEmployee.mutate(employeeData, {
       onSuccess: () => {
-        form.reset({ id: crypto.randomUUID() });
+        form.reset();
         onOpenChange(false);
       },
     });

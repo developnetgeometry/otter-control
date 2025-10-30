@@ -31,7 +31,6 @@ export const fetchEmployeeById = async (id: string) => {
 };
 
 export const createEmployee = async (employee: {
-  id: string;
   full_name: string;
   employee_id: string;
   email: string;
@@ -45,14 +44,13 @@ export const createEmployee = async (employee: {
   supervisor_id?: string;
   joining_date?: string;
 }) => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .insert([employee])
-    .select()
-    .single();
+  const { data, error } = await supabase.functions.invoke('create-employee', {
+    body: employee
+  });
 
   if (error) throw error;
-  return data;
+  if (data?.error) throw new Error(data.error);
+  return data.employee;
 };
 
 export const updateEmployee = async (id: string, updates: Partial<EmployeeProfile>) => {
