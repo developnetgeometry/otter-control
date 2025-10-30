@@ -69,36 +69,50 @@ serve(async (req) => {
     const employeeId = empPart.toUpperCase();
     console.log(`Extracted employee ID: ${employeeId}`);
 
-    // Verify current password
-    const { data: verifyData, error: verifyError } = await supabaseAdmin.rpc('verify_employee_credentials', {
-      _employee_id: employeeId,
-      _password: current_password
-    });
+    // Determine if credentials already exist for this employee
+    let credentialsExist = false;
+    try {
+      const { data: existingCred, error: credFetchError } = await supabaseAdmin
+        .from('auth_user_credentials')
+        .select('id')
+        .eq('employee_id', employeeId)
+        .maybeSingle();
 
-    console.log('Verify RPC result:', { verifyError, verifyData });
-
-    if (verifyError) {
-      console.error('RPC error:', verifyError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to verify password' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (credFetchError) {
+        console.error('Error checking existing credentials:', credFetchError);
+      }
+      credentialsExist = !!existingCred;
+    } catch (e) {
+      console.error('Unexpected error while checking credentials existence:', e);
     }
 
-    if (!verifyData || verifyData.length === 0) {
-      console.log('No verification data returned');
-      return new Response(
-        JSON.stringify({ error: 'Current password is incorrect' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // If credentials exist, verify the current password; otherwise allow first-time set
+    if (credentialsExist) {
+      // Verify current password
+      const { data: verifyData, error: verifyError } = await supabaseAdmin.rpc('verify_employee_credentials', {
+        _employee_id: employeeId,
+        _password: current_password
+      });
 
-    if (!verifyData[0].success) {
-      console.log('Password verification returned success=false');
-      return new Response(
-        JSON.stringify({ error: 'Current password is incorrect' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.log('Verify RPC result:', { verifyError, verifyData });
+
+      if (verifyError) {
+        console.error('RPC error:', verifyError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to verify password' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (!verifyData || verifyData.length === 0 || !verifyData[0].success) {
+        console.log('Password verification returned success=false');
+        return new Response(
+          JSON.stringify({ error: 'Current password is incorrect' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      console.log('No existing credentials found; allowing first-time password set.');
     }
 
     // Hash new password using pgcrypto
@@ -115,22 +129,42 @@ serve(async (req) => {
       );
     }
 
-    // Update password in auth_user_credentials
-    const { error: updateError } = await supabaseAdmin
-      .from('auth_user_credentials')
-      .update({
-        password_hash: hashData,
-        must_change_password: false,
-        last_password_change: new Date().toISOString()
-      })
-      .eq('employee_id', employeeId);
+    // Update or insert password in auth_user_credentials
+    if (credentialsExist) {
+      const { error: updateError } = await supabaseAdmin
+        .from('auth_user_credentials')
+        .update({
+          password_hash: hashData,
+          must_change_password: false,
+          last_password_change: new Date().toISOString()
+        })
+        .eq('employee_id', employeeId);
 
-    if (updateError) {
-      console.error('Password update error:', updateError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to update password' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (updateError) {
+        console.error('Password update error:', updateError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to update password' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      const { error: insertError } = await supabaseAdmin
+        .from('auth_user_credentials')
+        .insert({
+          employee_id: employeeId,
+          password_hash: hashData,
+          must_change_password: false,
+          is_active: true,
+          last_password_change: new Date().toISOString()
+        });
+
+      if (insertError) {
+        console.error('Password insert error:', insertError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to set password' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Activate profile after successful password change
