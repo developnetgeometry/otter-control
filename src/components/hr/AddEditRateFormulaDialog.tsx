@@ -129,7 +129,7 @@ export const AddEditRateFormulaDialog = ({ open, onOpenChange, editFormula }: Ad
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder="Select day type" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -146,13 +146,23 @@ export const AddEditRateFormulaDialog = ({ open, onOpenChange, editFormula }: Ad
 
                 <FormField
                   control={form.control}
-                  name="multiplier"
+                  name="employee_category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Multiplier</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.1" {...field} />
-                      </FormControl>
+                      <FormLabel>Employee Category</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="standard">All</SelectItem>
+                          <SelectItem value="technician">Technician</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="support">Support</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -161,15 +171,32 @@ export const AddEditRateFormulaDialog = ({ open, onOpenChange, editFormula }: Ad
 
               <FormField
                 control={form.control}
+                name="multiplier"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Multiplier</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.1" placeholder="e.g., 1.5" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Rate multiplier applied to base calculation
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="base_formula"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Base Formula</FormLabel>
+                    <FormLabel>Base Formula Expression</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., multiplier × HRP × TOH" {...field} />
+                      <Input placeholder="e.g., (Basic / 26 / 8) × 1.5 × Hours" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Use HRP (Hourly Rate of Pay), TOH (Total OT Hours), ORP (One-day Rate of Pay)
+                      Example formulas for reference: weekday = (Basic / 26 / 8) × 1.5 × Hours
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

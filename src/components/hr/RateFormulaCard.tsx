@@ -1,12 +1,12 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Pencil, Trash2, Copy, Calculator } from 'lucide-react';
+import { format } from 'date-fns';
 import { useToggleRateFormula, useDeleteRateFormula } from '@/hooks/useOTSettings';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { useState } from 'react';
-import { format } from 'date-fns';
 
 interface RateFormulaCardProps {
   formula: {
@@ -21,6 +21,7 @@ interface RateFormulaCardProps {
     employee_category?: string;
   };
   onEdit: (formula: any) => void;
+  onDuplicate: (formula: any) => void;
 }
 
 const dayTypeLabels: Record<string, string> = {
@@ -30,7 +31,7 @@ const dayTypeLabels: Record<string, string> = {
   public_holiday: 'Public Holiday',
 };
 
-export const RateFormulaCard = ({ formula, onEdit }: RateFormulaCardProps) => {
+export const RateFormulaCard = ({ formula, onEdit, onDuplicate }: RateFormulaCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const toggleFormula = useToggleRateFormula();
   const deleteFormula = useDeleteRateFormula();
@@ -47,68 +48,82 @@ export const RateFormulaCard = ({ formula, onEdit }: RateFormulaCardProps) => {
 
   return (
     <>
-      <Card className="border border-border">
-        <CardHeader className="pb-3">
+      <Card className="border border-gray-200 rounded-xl shadow-sm bg-white">
+        <CardContent className="p-5 space-y-3">
+          {/* Header: Title + Subtitle + Badge */}
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <CardTitle className="text-lg font-semibold">{formula.formula_name}</CardTitle>
-              <CardDescription className="text-sm mt-1 font-mono">
-                {formula.base_formula}
-              </CardDescription>
+              <h3 className="text-lg font-semibold text-gray-900">{formula.formula_name}</h3>
+              <p className="text-sm text-gray-500">
+                {dayTypeLabels[formula.day_type]} | {formula.employee_category || 'All'}
+              </p>
             </div>
-            <Badge variant={formula.is_active ? 'default' : 'secondary'}>
+            <Badge className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
               {formula.is_active ? 'Active' : 'Inactive'}
             </Badge>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Day Type</p>
-                <p className="font-medium">{dayTypeLabels[formula.day_type] || formula.day_type}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Multiplier</p>
-                <p className="font-medium">{formula.multiplier}x</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Effective From</p>
-                <p className="font-medium">{format(new Date(formula.effective_from), 'dd MMM yyyy')}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Effective To</p>
-                <p className="font-medium">
-                  {formula.effective_to ? format(new Date(formula.effective_to), 'dd MMM yyyy') : 'Ongoing'}
-                </p>
-              </div>
+
+          {/* Formula Expression Box */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-start gap-3">
+            <Calculator className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+            <div className="font-mono text-sm text-gray-800 break-all">
+              {formula.base_formula}
             </div>
-            
-            <div className="flex items-center justify-between pt-2 border-t">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formula.is_active}
-                  onCheckedChange={handleToggle}
-                  disabled={toggleFormula.isPending}
-                />
-                <span className="text-sm text-muted-foreground">Enabled</span>
+          </div>
+
+          {/* Metadata Grid */}
+          <div className="grid grid-cols-2 gap-4 text-sm pt-2">
+            <div>
+              <p className="text-gray-500">Multiplier</p>
+              <p className="font-medium text-gray-900">{formula.multiplier}×</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Effective From</p>
+              <p className="font-medium text-gray-900">{format(new Date(formula.effective_from), 'dd MMM yyyy')}</p>
+            </div>
+            {formula.effective_to && (
+              <div>
+                <p className="text-gray-500">Effective To</p>
+                <p className="font-medium text-gray-900">{format(new Date(formula.effective_to), 'dd MMM yyyy')}</p>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEdit(formula)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowDeleteDialog(true)}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
+            )}
+          </div>
+
+          {/* Actions Row */}
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={formula.is_active}
+                onCheckedChange={handleToggle}
+                disabled={toggleFormula.isPending}
+              />
+              <span className="text-sm text-gray-600">Enabled</span>
+            </div>
+            <div className="flex gap-1">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onDuplicate(formula)} 
+                title="Duplicate Formula"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onEdit(formula)} 
+                title="Edit Formula"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowDeleteDialog(true)} 
+                title="Delete Formula"
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
             </div>
           </div>
         </CardContent>
