@@ -116,11 +116,7 @@ export const OTSubmissionForm = () => {
         console.error('Calculation error:', error);
         setCalculations(null);
         setEligibility(null);
-        toast({
-          title: "Calculation Error",
-          description: "We couldn't compute your OT right now. Please try again.",
-          variant: "destructive",
-        });
+        // Don't toast for preview errors - submission will validate server-side
       } finally {
         setIsCalculating(false);
       }
