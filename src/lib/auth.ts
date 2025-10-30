@@ -23,15 +23,16 @@ export const signInWithEmployeeId = async (employeeId: string, password: string)
       return { data: null, error: { message: data.error || 'Invalid Employee ID or Password' } };
     }
 
-    // If session tokens are returned, set the session
-    if (data.session) {
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token
+    // If email_otp is returned, verify it to establish a session
+    if (data.session?.email_otp) {
+      const { error: otpError } = await supabase.auth.verifyOtp({
+        type: 'email',
+        email: `${employeeId}@otms.internal`,
+        token: data.session.email_otp
       });
 
-      if (sessionError) {
-        console.error('Session error:', sessionError);
+      if (otpError) {
+        console.error('OTP verification error:', otpError);
       }
     }
 

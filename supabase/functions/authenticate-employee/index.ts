@@ -67,6 +67,27 @@ serve(async (req) => {
     const userInfo = data[0];
     console.log('Authentication successful for:', userInfo.full_name);
 
+    // Check if user has roles, if not assign 'employee' role
+    const { data: rolesData, error: rolesError } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userInfo.user_id);
+
+    let userRoles = userInfo.roles || [];
+
+    if (!rolesError && (!rolesData || rolesData.length === 0)) {
+      console.log('No roles found for user, assigning employee role');
+      const { error: insertError } = await supabaseAdmin
+        .from('user_roles')
+        .insert({ user_id: userInfo.user_id, role: 'employee' });
+      
+      if (!insertError) {
+        userRoles = ['employee'];
+      }
+    } else if (rolesData && rolesData.length > 0) {
+      userRoles = rolesData.map(r => r.role);
+    }
+
     // Create a session for the user using Supabase Auth
     const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'magiclink',
@@ -90,7 +111,7 @@ serve(async (req) => {
             id: userInfo.user_id,
             employee_id: userInfo.employee_id,
             full_name: userInfo.full_name,
-            roles: userInfo.roles,
+            roles: userRoles,
             must_change_password: userInfo.must_change_password
           }
         }),
@@ -109,7 +130,7 @@ serve(async (req) => {
           id: userInfo.user_id,
           employee_id: userInfo.employee_id,
           full_name: userInfo.full_name,
-          roles: userInfo.roles,
+          roles: userRoles,
           must_change_password: userInfo.must_change_password
         },
         session: sessionData.properties
