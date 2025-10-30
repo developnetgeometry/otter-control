@@ -39,7 +39,9 @@ const formSchema = z.object({
   email: z.string().email('Invalid email address'),
   department_id: z.string().optional(),
   position: z.string().optional(),
-  employment_type: z.string().min(1, 'Employment type is required'),
+  employment_type: z.enum(['Permanent', 'Contract', 'Internship'], {
+    required_error: 'Employment type is required',
+  }),
   basic_salary: z.coerce.number().min(0).optional(),
   joining_date: z.string().optional(),
 });
@@ -58,7 +60,7 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
     resolver: zodResolver(formSchema),
     defaultValues: {
       id: crypto.randomUUID(),
-      employment_type: 'permanent',
+      employment_type: 'Permanent',
     },
   });
 
@@ -205,9 +207,9 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="permanent">Permanent</SelectItem>
-                          <SelectItem value="contract">Contract</SelectItem>
-                          <SelectItem value="temporary">Temporary</SelectItem>
+                          <SelectItem value="Permanent">Permanent</SelectItem>
+                          <SelectItem value="Contract">Contract</SelectItem>
+                          <SelectItem value="Internship">Internship</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

@@ -37,7 +37,7 @@ const formSchema = z.object({
   email: z.string().email(),
   department_id: z.string().optional(),
   position: z.string().optional(),
-  employment_type: z.string().min(1),
+  employment_type: z.enum(['Permanent', 'Contract', 'Internship']),
   basic_salary: z.coerce.number().min(0).optional(),
   status: z.string(),
 });
@@ -57,13 +57,21 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee }: EditEmploye
   });
 
   useEffect(() => {
+    // Normalize employment type to match the enum
+    const normalizeEmploymentType = (type: string): 'Permanent' | 'Contract' | 'Internship' => {
+      if (type === 'permanent') return 'Permanent';
+      if (type === 'contract') return 'Contract';
+      if (type === 'temporary' || type === 'internship') return 'Internship';
+      return type as 'Permanent' | 'Contract' | 'Internship';
+    };
+    
     form.reset({
       full_name: employee.full_name,
       employee_id: employee.employee_id,
       email: employee.email,
       department_id: employee.department_id || undefined,
       position: employee.position || undefined,
-      employment_type: employee.employment_type,
+      employment_type: normalizeEmploymentType(employee.employment_type),
       basic_salary: employee.basic_salary ? Number(employee.basic_salary) : undefined,
       status: employee.status || 'pending_activation',
     });
@@ -166,9 +174,9 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee }: EditEmploye
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="permanent">Permanent</SelectItem>
-                          <SelectItem value="contract">Contract</SelectItem>
-                          <SelectItem value="temporary">Temporary</SelectItem>
+                          <SelectItem value="Permanent">Permanent</SelectItem>
+                          <SelectItem value="Contract">Contract</SelectItem>
+                          <SelectItem value="Internship">Internship</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

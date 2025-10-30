@@ -17,7 +17,7 @@ const formSchema = z.object({
   rule_name: z.string().min(1, 'Rule name is required'),
   min_salary: z.coerce.number().min(0, 'Minimum salary must be 0 or greater'),
   max_salary: z.coerce.number().min(0, 'Maximum salary must be 0 or greater'),
-  employment_types: z.array(z.string()).optional(),
+  employment_types: z.array(z.enum(['Permanent', 'Contract', 'Internship'])).optional(),
   is_active: z.boolean().default(true),
 });
 
@@ -28,9 +28,9 @@ interface AddEditEligibilityRuleDialogProps {
 }
 
 const employmentTypeOptions = [
-  { value: 'permanent', label: 'Permanent' },
-  { value: 'contract', label: 'Contract' },
-  { value: 'temporary', label: 'Temporary' },
+  { value: 'Permanent', label: 'Permanent' },
+  { value: 'Contract', label: 'Contract' },
+  { value: 'Internship', label: 'Internship' },
 ];
 
 export const AddEditEligibilityRuleDialog = ({ open, onOpenChange, editRule }: AddEditEligibilityRuleDialogProps) => {
@@ -51,11 +51,23 @@ export const AddEditEligibilityRuleDialog = ({ open, onOpenChange, editRule }: A
 
   useEffect(() => {
     if (editRule) {
+      // Normalize legacy values to new capitalized format
+      const normalizedTypes = (editRule.employment_types || [])
+        .map((type: string) => {
+          if (type === 'permanent') return 'Permanent';
+          if (type === 'contract') return 'Contract';
+          if (type === 'temporary' || type === 'internship') return 'Internship';
+          return type;
+        })
+        .filter((type): type is 'Permanent' | 'Contract' | 'Internship' => 
+          type === 'Permanent' || type === 'Contract' || type === 'Internship'
+        );
+      
       form.reset({
         rule_name: editRule.rule_name,
         min_salary: editRule.min_salary,
         max_salary: editRule.max_salary,
-        employment_types: editRule.employment_types || [],
+        employment_types: normalizedTypes,
         is_active: editRule.is_active,
       });
     } else {
@@ -156,11 +168,11 @@ export const AddEditEligibilityRuleDialog = ({ open, onOpenChange, editRule }: A
                       {employmentTypeOptions.map((type) => (
                         <div key={type.value} className="flex items-center space-x-2">
                           <Checkbox
-                            checked={field.value?.includes(type.value)}
+                            checked={field.value?.includes(type.value as 'Permanent' | 'Contract' | 'Internship')}
                             onCheckedChange={(checked) => {
                               const current = field.value || [];
                               if (checked) {
-                                field.onChange([...current, type.value]);
+                                field.onChange([...current, type.value as 'Permanent' | 'Contract' | 'Internship']);
                               } else {
                                 field.onChange(current.filter((v) => v !== type.value));
                               }
