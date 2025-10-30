@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound";
 import EmployeesPage from "./pages/hr/EmployeesPage";
 import DepartmentsPage from "./pages/hr/DepartmentsPage";
 import ApproveOTPage from "./pages/hr/ApproveOTPage";
+import ReportsPage from "./pages/hr/ReportsPage";
+import OTSettingsPage from "./pages/hr/OTSettingsPage";
 import SubmitOTPage from "./pages/employee/SubmitOTPage";
 import OTHistoryPage from "./pages/employee/OTHistoryPage";
 
@@ -90,22 +92,22 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
-            <Route 
-              path="/hr/reports" 
-              element={
-                <ProtectedRoute allowedRoles={['hr', 'admin']}>
-                  <div>Reports Page (Coming Soon)</div>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/hr/settings" 
-              element={
-                <ProtectedRoute allowedRoles={['hr', 'admin']}>
-                  <div>Settings Page (Coming Soon)</div>
-                </ProtectedRoute>
-              } 
-            />
+          <Route 
+            path="/hr/reports" 
+            element={
+              <ProtectedRoute allowedRoles={['hr', 'admin']}>
+                <ReportsPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hr/settings" 
+            element={
+              <ProtectedRoute allowedRoles={['hr', 'admin']}>
+                <OTSettingsPage />
+              </ProtectedRoute>
+            } 
+          />
             <Route 
               path="/hr/departments" 
               element={
