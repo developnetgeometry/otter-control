@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import EmployeesPage from "./pages/hr/EmployeesPage";
 import DepartmentsPage from "./pages/hr/DepartmentsPage";
+import ApproveOTPage from "./pages/hr/ApproveOTPage";
 import SubmitOTPage from "./pages/employee/SubmitOTPage";
 import OTHistoryPage from "./pages/employee/OTHistoryPage";
 
@@ -85,7 +86,7 @@ const App = () => (
               path="/hr/approve" 
               element={
                 <ProtectedRoute allowedRoles={['hr', 'admin']}>
-                  <div>Approve OT Page (Coming Soon)</div>
+                  <ApproveOTPage />
                 </ProtectedRoute>
               } 
             />
