@@ -83,6 +83,19 @@ export const createOTRequest = async (request: {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  // Check eligibility before proceeding
+  const { data: eligibility, error: eligibilityError } = await supabase.rpc('check_ot_eligibility', {
+    employee_id: user.id,
+    ot_date: request.ot_date
+  });
+
+  if (eligibilityError) throw eligibilityError;
+  
+  const eligibilityResult = eligibility?.[0];
+  if (!eligibilityResult?.is_eligible) {
+    throw new Error(eligibilityResult?.reason || 'Not eligible to submit OT');
+  }
+
   // Get supervisor_id from profile
   const { data: profile } = await supabase
     .from('profiles')

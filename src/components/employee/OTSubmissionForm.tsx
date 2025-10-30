@@ -152,26 +152,44 @@ export const OTSubmissionForm = () => {
   };
 
   const onSubmit = async (values: FormData) => {
-    if (!calculations || !eligibility?.isEligible) {
-      return;
+    try {
+      // Recompute values for submission
+      const dateStr = format(values.ot_date, 'yyyy-MM-dd');
+      const totalHours = calculateHours(values.start_time, values.end_time);
+      
+      if (totalHours <= 0) {
+        toast({
+          title: "Invalid Time Range",
+          description: "Calculated hours must be greater than 0",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const dayType = await determineDayType(dateStr);
+
+      await createMutation.mutateAsync({
+        ot_date: dateStr,
+        start_time: values.start_time,
+        end_time: values.end_time,
+        total_hours: totalHours,
+        day_type: dayType,
+        reason: values.reason,
+        attachment_url: uploadedFileUrl || undefined
+      });
+
+      form.reset();
+      setCalculations(null);
+      setEligibility(null);
+      setUploadedFileUrl(null);
+    } catch (error: any) {
+      console.error('Failed to create OT request:', error);
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Failed to submit OT request. Please try again.",
+        variant: "destructive",
+      });
     }
-
-    const dateStr = format(values.ot_date, 'yyyy-MM-dd');
-
-    await createMutation.mutateAsync({
-      ot_date: dateStr,
-      start_time: values.start_time,
-      end_time: values.end_time,
-      total_hours: calculations.totalHours,
-      day_type: calculations.dayType,
-      reason: values.reason,
-      attachment_url: uploadedFileUrl || undefined,
-    });
-
-    form.reset();
-    setCalculations(null);
-    setEligibility(null);
-    setUploadedFileUrl(null);
   };
 
   return (
@@ -306,7 +324,14 @@ export const OTSubmissionForm = () => {
           <Button 
             type="submit" 
             className="w-full"
-            disabled={isCalculating || !calculations || !eligibility?.isEligible || createMutation.isPending}
+            disabled={
+              !watchedDate || 
+              !watchedStartTime || 
+              !watchedEndTime || 
+              calculateHours(watchedStartTime, watchedEndTime) <= 0 ||
+              isCalculating || 
+              createMutation.isPending
+            }
           >
             {createMutation.isPending ? (
               <>
@@ -317,16 +342,14 @@ export const OTSubmissionForm = () => {
               'Submit OT Request'
             )}
           </Button>
-          {(isCalculating || !calculations || !eligibility?.isEligible) && (
+          {(!watchedDate || !watchedStartTime || !watchedEndTime || (watchedStartTime && watchedEndTime && calculateHours(watchedStartTime, watchedEndTime) <= 0) || isCalculating) && (
             <p className="text-sm text-muted-foreground text-center">
               {isCalculating 
                 ? 'Still calculating...' 
                 : !watchedDate || !watchedStartTime || !watchedEndTime
                 ? 'Select OT date, start and end time'
-                : calculations && calculations.totalHours <= 0
+                : calculateHours(watchedStartTime, watchedEndTime) <= 0
                 ? 'Calculated hours must be greater than 0'
-                : eligibility && !eligibility.isEligible
-                ? `You are not eligible to submit OT: ${eligibility.reason}`
                 : 'Please complete all required fields'}
             </p>
           )}
