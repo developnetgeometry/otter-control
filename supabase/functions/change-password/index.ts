@@ -115,6 +115,17 @@ serve(async (req) => {
       );
     }
 
+    // Activate profile after successful password change
+    const { error: profileActivationError } = await supabaseAdmin
+      .from('profiles')
+      .update({ status: 'active' })
+      .eq('id', user.id);
+
+    if (profileActivationError) {
+      console.error('Error activating profile:', profileActivationError);
+      // Don't fail the request, just log the error
+    }
+
     console.log('Password changed successfully for:', profile.employee_id);
 
     return new Response(
