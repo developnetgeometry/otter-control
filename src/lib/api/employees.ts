@@ -78,3 +78,32 @@ export const updateEmployeeStatus = async (id: string, status: string) => {
   if (error) throw error;
   return data;
 };
+
+export const getNextEmployeeId = async (): Promise<string> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('employee_id')
+    .order('employee_id', { ascending: false })
+    .limit(1);
+
+  if (error) throw error;
+
+  // If no employees exist, start with EMP001
+  if (!data || data.length === 0) {
+    return 'EMP001';
+  }
+
+  // Extract the numeric part from the latest employee_id (e.g., "EMP005" -> 5)
+  const latestId = data[0].employee_id;
+  const match = latestId.match(/EMP(\d+)/);
+  
+  if (!match) {
+    throw new Error('Invalid employee ID format');
+  }
+
+  const latestNumber = parseInt(match[1], 10);
+  const nextNumber = latestNumber + 1;
+  
+  // Format with leading zeros (e.g., 6 -> "EMP006")
+  return `EMP${nextNumber.toString().padStart(3, '0')}`;
+};

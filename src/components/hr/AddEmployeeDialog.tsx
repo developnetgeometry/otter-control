@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -25,14 +26,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCreateEmployee } from '@/hooks/useEmployees';
+import { Badge } from '@/components/ui/badge';
+import { useCreateEmployee, useNextEmployeeId } from '@/hooks/useEmployees';
 import { useDepartments } from '@/hooks/useDepartments';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   id: z.string().uuid(),
   full_name: z.string().min(1, 'Full name is required'),
-  employee_id: z.string().min(1, 'Employee ID is required'),
+  employee_id: z.string().optional(),
   email: z.string().email('Invalid email address'),
   department_id: z.string().optional(),
   position: z.string().optional(),
@@ -49,6 +52,7 @@ interface AddEmployeeDialogProps {
 export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps) => {
   const createEmployee = useCreateEmployee();
   const { data: departments } = useDepartments();
+  const { data: nextEmployeeId, isLoading: isLoadingNextId } = useNextEmployeeId();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,11 +62,17 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
     },
   });
 
+  useEffect(() => {
+    if (nextEmployeeId && open) {
+      form.setValue('employee_id', nextEmployeeId);
+    }
+  }, [nextEmployeeId, open, form]);
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const employeeData = {
       id: values.id,
       full_name: values.full_name,
-      employee_id: values.employee_id,
+      employee_id: values.employee_id || nextEmployeeId || 'EMP001',
       email: values.email,
       employment_type: values.employment_type,
       department_id: values.department_id,
@@ -91,19 +101,21 @@ export const AddEmployeeDialog = ({ open, onOpenChange }: AddEmployeeDialogProps
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="employee_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Employee ID</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="col-span-2 bg-muted/50 border border-border rounded-lg p-4">
+                  <FormLabel className="text-sm font-medium">Employee ID</FormLabel>
+                  <div className="mt-1 flex items-center gap-2">
+                    {isLoadingNextId ? (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm">Generating ID...</span>
+                      </div>
+                    ) : (
+                      <p className="text-lg font-semibold">{nextEmployeeId || 'EMP001'}</p>
+                    )}
+                    <Badge variant="secondary" className="ml-2">Auto-generated</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">This ID is automatically assigned</p>
+                </div>
                 <FormField
                   control={form.control}
                   name="full_name"

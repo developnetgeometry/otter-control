@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchEmployees, fetchEmployeeById, createEmployee, updateEmployee, updateEmployeeStatus } from '@/lib/api/employees';
+import { fetchEmployees, fetchEmployeeById, createEmployee, updateEmployee, updateEmployeeStatus, getNextEmployeeId } from '@/lib/api/employees';
 import { useToast } from '@/hooks/use-toast';
 
 export const useEmployees = () => {
@@ -17,6 +17,14 @@ export const useEmployee = (id: string) => {
   });
 };
 
+export const useNextEmployeeId = () => {
+  return useQuery({
+    queryKey: ['next-employee-id'],
+    queryFn: getNextEmployeeId,
+    staleTime: 0,
+  });
+};
+
 export const useCreateEmployee = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -25,17 +33,28 @@ export const useCreateEmployee = () => {
     mutationFn: createEmployee,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: ['next-employee-id'] });
       toast({
         title: 'Success',
         description: 'Employee created successfully'
       });
     },
     onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create employee',
-        variant: 'destructive'
-      });
+      // Check for duplicate employee_id error
+      if (error.message?.includes('duplicate key') || error.code === '23505') {
+        toast({
+          title: 'Error',
+          description: 'Employee ID already exists. Please try again.',
+          variant: 'destructive'
+        });
+        queryClient.invalidateQueries({ queryKey: ['next-employee-id'] });
+      } else {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to create employee',
+          variant: 'destructive'
+        });
+      }
     }
   });
 };
