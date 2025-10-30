@@ -71,10 +71,11 @@ serve(async (req) => {
 
     // Determine if credentials already exist for this employee
     let credentialsExist = false;
+    let mustChange = false;
     try {
       const { data: existingCred, error: credFetchError } = await supabaseAdmin
         .from('auth_user_credentials')
-        .select('id')
+        .select('id, must_change_password')
         .eq('employee_id', employeeId)
         .maybeSingle();
 
@@ -82,12 +83,13 @@ serve(async (req) => {
         console.error('Error checking existing credentials:', credFetchError);
       }
       credentialsExist = !!existingCred;
+      mustChange = !!existingCred?.must_change_password;
     } catch (e) {
       console.error('Unexpected error while checking credentials existence:', e);
     }
 
     // If credentials exist, verify the current password; otherwise allow first-time set
-    if (credentialsExist) {
+    if (credentialsExist && !mustChange) {
       // Verify current password
       const { data: verifyData, error: verifyError } = await supabaseAdmin.rpc('verify_employee_credentials', {
         _employee_id: employeeId,
@@ -112,7 +114,7 @@ serve(async (req) => {
         );
       }
     } else {
-      console.log('No existing credentials found; allowing first-time password set.');
+      console.log('No existing credentials or must_change_password=true; allowing password set without verifying current password.');
     }
 
     // Hash new password using pgcrypto
