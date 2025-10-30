@@ -7,7 +7,7 @@ export const fetchEmployees = async () => {
     .select(`
       *,
       department:departments(name, code),
-      supervisor:profiles!profiles_supervisor_id_fkey(full_name, email)
+      supervisor:profiles(full_name, email)
     `)
     .order('full_name');
 
@@ -21,7 +21,7 @@ export const fetchEmployeeById = async (id: string) => {
     .select(`
       *,
       department:departments(name, code),
-      supervisor:profiles!profiles_supervisor_id_fkey(full_name, email)
+      supervisor:profiles(full_name, email)
     `)
     .eq('id', id)
     .single();
