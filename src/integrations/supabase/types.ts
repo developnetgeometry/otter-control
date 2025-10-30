@@ -518,10 +518,12 @@ export type Database = {
         }
         Returns: Json
       }
+      crypt: { Args: { password: string; salt: string }; Returns: string }
       determine_day_type: {
         Args: { ot_date: string }
         Returns: Database["public"]["Enums"]["day_type"]
       }
+      gen_salt: { Args: { type: string }; Returns: string }
       get_active_formula: {
         Args: {
           day_type: Database["public"]["Enums"]["day_type"]
