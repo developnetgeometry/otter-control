@@ -207,6 +207,30 @@ Deno.serve(async (req) => {
 
         console.log(`Created profile for ${testUser.email}`);
 
+        // Create auth credentials for employee ID login
+        const { data: saltData } = await supabaseAdmin.rpc('gen_salt', { type: 'bf' });
+        const salt = saltData;
+
+        const { data: hashedPassword } = await supabaseAdmin.rpc('crypt', {
+          password: testUser.password,
+          salt: salt,
+        });
+
+        const { error: credError } = await supabaseAdmin
+          .from('auth_user_credentials')
+          .insert({
+            employee_id: testUser.employee_id,
+            password_hash: hashedPassword,
+            must_change_password: false,
+            is_active: true,
+          });
+
+        if (credError) {
+          console.error(`Credentials error for ${testUser.email}:`, credError);
+        } else {
+          console.log(`Created credentials for ${testUser.employee_id}`);
+        }
+
         // Assign roles
         for (const role of testUser.roles) {
           const { error: roleError } = await supabaseAdmin.from('user_roles').insert({
